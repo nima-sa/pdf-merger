@@ -7,10 +7,13 @@ from pathlib import Path
 import os
 import threading
 
-
 def make_window():
     root = tkinter.Tk()
     def quit():
+        if flag_processing:
+            op = tkinter.messagebox.askyesno(title='Still in progress', message='If you quit now, the operation will be aborted.\nDo you want to quit?', icon=tkinter.messagebox.WARNING)
+            if not op:
+                return
         root.quit()
         exit(0)
 
@@ -35,6 +38,8 @@ def make_window():
 
 
 if __name__ == '__main__':
+    global flag_processing
+    flag_processing = False
     pdfs = tkinter.filedialog.askopenfilenames(filetypes=[('PDF Files', ('.pdf'))])
     
     if len(pdfs) == 0:
@@ -54,6 +59,9 @@ if __name__ == '__main__':
             timer.start()
 
         def proceed():
+            global flag_processing
+            flag_processing = True
+
             merger = PdfMerger()
             parent_folder = os.path.join(*Path(pdfs[0]).parts[:-1])
             for idx, pdf in enumerate(pdfs):
@@ -66,7 +74,7 @@ if __name__ == '__main__':
             merger.close()
             timer.cancel()
             text_var.set(f'Done. You can close the window.\nSaved in "{parent_folder}"')
-
+            flag_processing = False
 
         pdf_thread = threading.Thread(target=lambda: proceed())
         pdf_thread.daemon = True
