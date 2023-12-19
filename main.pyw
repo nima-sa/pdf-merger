@@ -2,6 +2,7 @@ import tkinter.filedialog
 import tkinter.messagebox
 import tkinter.ttk
 
+import platform
 from pypdf import PdfMerger
 from pathlib import Path
 import os
@@ -29,7 +30,8 @@ def make_window():
     text.pack(expand=True)
 
     style = tkinter.ttk.Style()
-    style.theme_use('vista')
+    if not platform.system() == 'Darwin':
+        style.theme_use('vista')
 
     button = tkinter.ttk.Button(root, text="Quit", command=quit)
     button.place(relx=1.0, rely=1.0, x=-8, y=-8, anchor="se")
@@ -53,7 +55,8 @@ if __name__ == '__main__':
         dots_counter = 0
         def update_idle_indicator():
             global timer, dots_counter
-            text_var.set(f'Saving{"." * dots_counter}')
+            if not platform.system() == 'Darwin':
+                text_var.set(f'Saving{"." * dots_counter}')
             dots_counter = (dots_counter + 1) % 4
             timer = threading.Timer(2, update_idle_indicator)
             timer.start()
@@ -66,14 +69,17 @@ if __name__ == '__main__':
             parent_folder = os.path.join(*Path(pdfs[0]).parts[:-1])
             for idx, pdf in enumerate(pdfs):
                 name = Path(pdf).parts[-1]
-                text_var.set(f'Processing\n{name}')
+
+                if not platform.system() == 'Darwin':
+                    text_var.set(f'Processing\n{name}')
                 merger.append(pdf)
 
             update_idle_indicator()
             merger.write(os.path.join(parent_folder, f'Merged {len(pdfs)} PDFs.pdf'))
             merger.close()
             timer.cancel()
-            text_var.set(f'Done. You can close the window.\nSaved in "{parent_folder}"')
+            if not platform.system() == 'Darwin':
+                text_var.set(f'Done. You can close the window.\nSaved in "{parent_folder}"')
             flag_processing = False
 
         pdf_thread = threading.Thread(target=lambda: proceed())
